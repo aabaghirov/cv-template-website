@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ 'Edit' if tx else 'New' }} transaction</h1>
+<form method="post">
+  <div class="mb-3">
+    <label class="form-label">Description</label>
+    <input class="form-control" name="description" value="{{ tx.description if tx else '' }}" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Amount</label>
+    <input class="form-control" name="amount" type="number" step="0.01" value="{{ tx.amount if tx else '' }}" required>
+    <div class="form-text">Use negative numbers for expenses (e.g. -12.50) and positive for income.</div>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Date</label>
+    <input class="form-control" name="date" type="date" value="{{ tx.date.isoformat() if tx else '' }}" required>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Category</label>
+    <select class="form-select" name="category">
+      <option value="">-- none --</option>
+      {% for c in categories %}
+      <option value="{{ c.id }}" {% if tx and tx.category_id==c.id %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button class="btn btn-primary" type="submit">Save</button>
+  <a class="btn btn-secondary" href="{{ url_for('transactions') }}">Cancel</a>
+</form>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Dashboard</h1>
+
+<p style="color:red">This is a test line — if you see this, index.html is rendering!</p>
+<div class="row mb-4">
+  <div class="col-md-4">
+    <div class="card p-3">
+      <h6>Total Income</h6>
+      <h3>${{ '{:.2f}'.format(income) }}</h3>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3">
+      <h6>Total Expenses</h6>
+      <h3>${{ '{:.2f}'.format(abs(expenses)) }}</h3>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3">
+      <h6>Net</h6>
+      <h3>${{ '{:.2f}'.format(income + expenses) }}</h3>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-4 p-3">
+  <h5>Last 6 months (net)</h5>
+  <canvas id="monthlyChart" height="100"></canvas>
+</div>
+
+<div class="card p-3">
+  <h5>Recent transactions</h5>
+  <table class="table">
+    <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for t in recent %}
+      <tr>
+        <td>{{ t.date.isoformat() }}</td>
+        <td>{{ t.description }}</td>
+        <td>{{ t.category.name if t.category else '' }}</td>
+        <td class="{{ 'text-danger' if t.amount<0 else 'text-success' }}">${{ '{:.2f}'.format(t.amount) }}</td>
+        <td>
+          <a class="btn btn-sm btn-primary" href="{{ url_for('edit_transaction', tx_id=t.id) }}">Edit</a>
+          <form method="post" action="{{ url_for('delete_transaction', tx_id=t.id) }}" style="display:inline">
+            <button class="btn btn-sm btn-danger" onclick="return confirm('Delete?')">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <a class="btn btn-outline-primary" href="{{ url_for('transactions') }}">View all</a>
+  <a class="btn btn-success" href="{{ url_for('new_transaction') }}">Add transaction</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+fetch("{{ url_for('api_summary') }}")
+  .then(r=>r.json())
+  .then(data=>{
+    const ctx = document.getElementById('monthlyChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.labels,
+        datasets: [{ label: 'Net per month', data: data.data }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+  });
+</script>
+{% endblock %}
